@@ -15,7 +15,11 @@ pipeline {
 
         stage('Build WAR using Maven') {
             steps {
-                sh 'mvn clean package'
+                sh '''
+                    mvn clean package
+                    echo "===== Target Directory Contents ====="
+                    ls -l target/
+                '''
             }
         }
 
@@ -29,8 +33,8 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'docker-hub', variable: 'hubPwd')]) {
                     sh """
-                    echo ${hubPwd} | docker login -u vaseem06 --password-stdin
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        echo ${hubPwd} | docker login -u vaseem06 --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     """
                 }
             }
@@ -47,16 +51,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                         sh '''
-                        sed -i "s/[0-9]\\+/${BUILD_NUMBER}/g" dev/deployment.yaml
-                        git config --global user.email "vaseem06@gmail.com"
-                        git config --global user.name "vaseem06"
-                        git add dev/deployment.yaml
-                        git commit -m "Updated deployment image tag to ${BUILD_NUMBER}"
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/betawins/Hiring-app-argocd.git main
-                        '''
-                    }
-                }
-            }
-        }
-    }
-}
+                            sed -i "s/[0-9]\\+/${BUILD_NUMBER}/g" dev/deployment.yaml
+                            git config --global user.email "vaseem06@gmail.com"
+                            git config --global user.name "vaseem06"
+                            git add dev/deployment.yaml
