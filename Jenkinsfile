@@ -7,10 +7,15 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout App Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/vaseem-06/hiring-app-1.git'
+            }
+        }
+
+        stage('Build WAR using Maven') {
+            steps {
+                sh 'mvn clean package'
             }
         }
 
@@ -42,19 +47,11 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                         sh '''
-                        echo "Before update:"
-                        cat dev/deployment.yaml
-
                         sed -i "s/[0-9]\\+/${BUILD_NUMBER}/g" dev/deployment.yaml
-
-                        echo "After update:"
-                        cat dev/deployment.yaml
-
                         git config --global user.email "vaseem06@gmail.com"
                         git config --global user.name "vaseem06"
-
                         git add dev/deployment.yaml
-                        git commit -m "Updated deployment image tag to ${BUILD_NUMBER} | Jenkins Pipeline"
+                        git commit -m "Updated deployment image tag to ${BUILD_NUMBER}"
                         git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/betawins/Hiring-app-argocd.git main
                         '''
                     }
