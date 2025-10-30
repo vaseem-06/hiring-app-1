@@ -44,26 +44,28 @@ pipeline {
 
         stage('Checkout K8S manifest SCM') {
             steps {
-                git branch: 'main', url: 'https://github.com/betawins/Hiring-app-argocd.git'
+                // ✅ Checkout your own forked ArgoCD repo
+                git branch: 'main', url: 'https://github.com/vaseem-06/Hiring-app-argocd.git'
             }
         }
 
         stage('Update K8S manifest & push to Repo') {
             steps {
                 script {
+                    // ✅ Use GitHub credentials to commit and push
                     withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                         sh '''
                             # ✅ Update image tag in K8s deployment manifest
                             sed -i "s/[0-9]\\+/${BUILD_NUMBER}/g" dev/deployment.yaml
 
-                            # ✅ Configure Git
+                            # ✅ Configure Git user info
                             git config --global user.email "vaseem06@gmail.com"
                             git config --global user.name "vaseem06"
 
-                            # ✅ Commit and push changes
+                            # ✅ Commit and push changes to your fork
                             git add dev/deployment.yaml
-                            git commit -m "Updated deployment image tag to ${BUILD_NUMBER}"
-                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/betawins/Hiring-app-argocd.git main
+                            git commit -m "Updated deployment image tag to ${BUILD_NUMBER}" || echo "No changes to commit"
+                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/vaseem-06/Hiring-app-argocd.git main
                         '''
                     }
                 }
