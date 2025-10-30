@@ -1,4 +1,4 @@
-pipeline {
+ pipeline {
     agent any
 
     environment {
@@ -55,3 +55,12 @@ pipeline {
                             git config --global user.email "vaseem06@gmail.com"
                             git config --global user.name "vaseem06"
                             git add dev/deployment.yaml
+                            git commit -m "Updated deployment image tag to ${BUILD_NUMBER}"
+                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/betawins/Hiring-app-argocd.git main
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
