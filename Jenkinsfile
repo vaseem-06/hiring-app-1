@@ -7,6 +7,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout App Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/vaseem-06/hiring-app-1.git'
@@ -31,12 +32,12 @@ pipeline {
 
         stage('Docker Push') {
             steps {
-                // ✅ Updated to support Username & Password credentials
+                // ✅ Use username/password credentials for Docker Hub login
                 withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
+                    sh '''
+                        echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
+                    '''
                 }
             }
         }
@@ -52,9 +53,14 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                         sh '''
+                            # ✅ Update image tag in K8s deployment manifest
                             sed -i "s/[0-9]\\+/${BUILD_NUMBER}/g" dev/deployment.yaml
+
+                            # ✅ Configure Git
                             git config --global user.email "vaseem06@gmail.com"
                             git config --global user.name "vaseem06"
+
+                            # ✅ Commit and push changes
                             git add dev/deployment.yaml
                             git commit -m "Updated deployment image tag to ${BUILD_NUMBER}"
                             git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/betawins/Hiring-app-argocd.git main
